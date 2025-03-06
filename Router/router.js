@@ -1,7 +1,7 @@
 
+const express = require('express');
+const router = express.Router();
 
 
 
-//Add Task to employees and managers
-
-router.post('/addTaskAllUsers',jwtMiddleware,taskController.addAllusersTask)
+module.exports = router;
