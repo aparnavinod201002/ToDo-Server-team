@@ -18,6 +18,10 @@ router.post('/register',userController.registerUserController)
 // Login of users
 router.post('/login',userController.loginUserController)
 
+//get all users
+
+router.get('/getAllUsers',jwtMiddleware,userController.getManagersAndEmployeesController)
+
 //add task by admin to manager and emolyees ,add task to manager to employees under them
 
 router.post('/AssignTask',jwtMiddleware,taskController.addAllUserstask)
