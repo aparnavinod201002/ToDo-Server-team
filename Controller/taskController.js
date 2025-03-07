@@ -1,176 +1,106 @@
 const Task = require('../Model/taskSchema')
-//task added to all users
+//Assign task by admin to managers and managers to employees
 
 
-exports.addAllUserstask = async(req,res)=>{
-    console.log("inside add task added function");
-    const {title,description,priority,status,dueDate}=req.body
-    const assignedTo = req.payload
-    try{
-        const existingTask = await Task.findOne({title,assignedTo})
-        if(existingTask){
-            res.status(406).json("task Already Assigned...")
-        }else{
-            const newTask = new Task({
-                title,description,assignedTo,assignedBy:"Admin",priority,status,dueDate
-            })
-            await newTask.save()
-            res.status(200).json(newTask)
-        }
-       
-
-    }catch(err){
-        res.status(401).json(err)
-    }
-    
-}
-
-//task added by manager
 
 
-exports.addEmployeetask = async(req,res)=>{
+exports.addAllUserstask = async (req, res) => {
     console.log("inside add task added function");
 
-    const {title,description, priority,status,dueDate}=req.body
-    const assignedTo = req.payload
-    const assignedBy = req.params
-    try{
-        const existingTask = await Task.findOne({title,assignedTo})
-        if(existingTask){
-            res.status(406).json("task Already Assigned...")
-        }else{
-            const newTask = new Task({
-                title,description,assignedTo,assignedBy,priority,status,dueDate
-            })
-            await newTask.save()
-            res.status(200).json(newTask)
+    const { title, description, priority, status, dueDate, assignedTo } = req.body;
+    const { role, userId } = req.payload; // Assuming role and userId are extracted from token payload
+
+    try {
+        // Role-based validation
+        if (role === "Admin") {
+            // Admin can assign tasks to Managers and Employees
+            const assignedUser = await User.findById(assignedTo);
+            if (!assignedUser || (assignedUser.role !== "Manager" && assignedUser.role !== "Employee")) {
+                return res.status(403).json({ message: "Admin can only assign tasks to Managers and Employees" });
+            }
+        } else if (role === "Manager") {
+            // Manager can only assign tasks to Employees under them
+            const assignedUser = await User.findOne({ _id: assignedTo, managerId: userId });
+            if (!assignedUser || assignedUser.role !== "Employee") {
+                return res.status(403).json({ message: "Manager can only assign tasks to Employees under them" });
+            }
+        } else if (role === "Employee") {
+            // Employees are not allowed to add tasks
+            return res.status(403).json({ message: "Employees cannot add tasks" });
+        } else {
+            // Other roles or unauthorized users cannot access
+            return res.status(403).json({ message: "Access denied" });
         }
-       
 
-    }catch(err){
-        res.status(401).json(err)
+        // Check if the task with the same title is already assigned to the same person
+        const existingTask = await Task.findOne({ title, assignedTo });
+        if (existingTask) {
+            return res.status(406).json({ message: "Task already assigned" });
+        }
+
+        // Create new task
+        const newTask = new Task({
+            title,
+            description,
+            assignedTo,
+            assignedBy: role, // Assigning role for tracking
+            priority,
+            status,
+            dueDate
+        });
+
+        await newTask.save();
+        res.status(200).json(newTask);
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-    
-}
+};
 
-//get all task details by userid
+
+
+
+//get all task details
+
+
+
+
 
 exports.getAllUserTasks = async (req, res) => {
     try {
-        const userId = req.payload; 
-        const userTasks = await Task.find({ assignedTo: userId }); 
-        res.status(200).json(userTasks);
-    } catch (err) {
-        res.status(500).json({ error: "Error fetching user tasks", details: err });
-    }
-};
+        const { role, userId } = req.payload; // Extract role and userId from token payload
+        let userTasks;
 
-//get all task assigned to managers and employees viewed by employee and manager
+        if (role === "Admin") {
+            // Admin can view tasks assigned by them to Managers and Employees
+            userTasks = await Task.find({ assignedBy: "Admin" });
 
+            // Also, Admin can view tasks assigned by Managers to their Employees
+            const managers = await User.find({ role: "Manager" }).select("_id");
+            const managerIds = managers.map(manager => manager._id);
 
-exports.getUserTasks = async (req, res) => {
-    try {
-        const userId = req.payload; 
-        const userTasks = await Task.find({ assignedTo: userId }); 
-        res.status(200).json(userTasks);
-    } catch (err) {
-        res.status(500).json({ error: "Error fetching user tasks", details: err });
-    }
-};
+            const managerAssignedTasks = await Task.find({ assignedBy: { $in: managerIds } });
+            userTasks = [...userTasks, ...managerAssignedTasks];
 
+        } else if (role === "Manager") {
+            // Manager can view tasks assigned by Admin to them
+            const adminAssignedTasks = await Task.find({ assignedTo: userId, assignedBy: "Admin" });
 
-//task assigned  by manger to employee .view by manager
+            // Also, Manager can view tasks they assigned to Employees under them
+            const employeeTasks = await Task.find({ assignedBy: userId });
 
+            userTasks = [...adminAssignedTasks, ...employeeTasks];
 
-exports.getManagerAssignedTask = async (req, res) => {
-    try {
-        const userId = req.payload; 
-        const TaksAdded = await Task.find({ assignedBy: userId }); 
-        res.status(200).json(TaksAdded);
-    } catch (err) {
-        res.status(500).json({ error: "Error fetching user tasks", details: err });
-    }
-};
+        } else if (role === "Employee") {
+            // Employee can only view tasks assigned to them
+            userTasks = await Task.find({ assignedTo: userId });
 
-
-//task of employees
-
-exports.getEmployeesTask = async (req, res) => {
-    try {
-        const userId = req.params; 
-        const TaksAdded = await Task.find({ assignedTo: userId }); 
-        res.status(200).json(TaksAdded);
-    } catch (err) {
-        res.status(500).json({ error: "Error fetching user tasks", details: err });
-    }
-};
-
-//task assigned  by admin to manager  --manger side
-
-
-
-exports.getManagerAssignedTaskByAdmin = async (req, res) => {
-    try {
-        const userId = req.param; 
-        const TaksAdded = await Task.find({ assignedBy: userId }); 
-        res.status(200).json(TaksAdded);
-    } catch (err) {
-        res.status(500).json({ error: "Error fetching user tasks", details: err });
-    }
-};
-
-
-
-// Update task status
-exports.updateTaskStatus = async (req, res) => {
-    try {
-        const { taskId } = req.params;
-        const { status } = req.body;
-
-        const updatedTask = await Task.findByIdAndUpdate(
-            taskId,
-            { status },
-            { new: true } 
-        );
-
-        if (!updatedTask) {
-            return res.status(404).json({ message: "Task not found" });
+        } else {
+            return res.status(403).json({ message: "Access denied" });
         }
 
-        res.status(200).json({ message: "Task status updated successfully", updatedTask });
+        res.status(200).json(userTasks);
     } catch (err) {
-        res.status(500).json({ error: "Error updating task status", details: err });
+        res.status(500).json({ error: "Error fetching user tasks", details: err });
     }
 };
-
-//edit task
-
-exports.editTask= async(req,res)=>{
-
-    const {title,description,priority,status,dueDate}=req.body
-   
-    
-
-    const {id}=req.params
-    try{
-        const updateTask=await Task.findByIdAndUpdate({_id:id},{
-            title,description,priority,status,dueDate
-        },{new:true})
-        await updateTask.save()
-        res.status(200).json(updateTask)
-    }catch(err){
-        res.status(401).json(err)
-    }
-}
-
-//delete
-exports.deleteTask = async(req,res)=>{
-    const {id} = req.params
-
-    try{
-        const deleteData = await task.findByIdAndDelete({_id:id})
-        result.status(200).json(deleteData)
-    }catch(err){
-        res.status(401).json(err)
-    }
-}
