@@ -1,8 +1,9 @@
 const Task = require('../Model/taskSchema')
 const User = require('../Model/userSchema')
+
+
+
 //Assign task by admin to managers and managers to employees
-
-
 
 
 exports.addAllUserstask = async (req, res) => {
@@ -21,7 +22,7 @@ exports.addAllUserstask = async (req, res) => {
             }
         } else if (role === "Manager") {
             // Manager can only assign tasks to Employees under them
-            const assignedUser = await User.findOne({ _id: assignedTo, managerId: userId });
+            const assignedUser = await User.findOne({ assignedEmployees: assignedTo, _id: userId });
             if (!assignedUser || assignedUser.role !== "Employee") {
                 return res.status(403).json({ message: "Manager can only assign tasks to Employees under them" });
             }
@@ -85,7 +86,7 @@ exports.getAllUserTasks = async (req, res) => {
 
         } else if (role === "Manager") {
             // Manager can view tasks assigned by Admin to them
-            const adminAssignedTasks = await Task.find({ assignedTo: userId, assignedBy: "Admin" });
+            const adminAssignedTasks = await Task.find({ assignedTo: userId});
 
             // Also, Manager can view tasks they assigned to Employees under them
             const employeeTasks = await Task.find({ assignedBy: userId });
