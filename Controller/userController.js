@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const User = require('../Model/userSchema');
 const jwt = require('jsonwebtoken');
+const { response } = require('express');
 
 // Register controller
 exports.registerUserController = async (req, res) => {
@@ -53,7 +54,31 @@ exports.loginUserController = async (req, res) => {
       res.status(500).json('Server error');
     }
   };
+
+
+  // to get manager so that they can be assigned to there employes
+  exports.getManagers = async (req,res)=>{
+    const searchKey = req.query.search
+    console.log(searchKey);
+    const query = {
+      role:"Manager",
+      name :{
+        $regex : searchKey, $options : "i"
+      }
+    }
+    try {
+      const getallManager = await User.find(query)
+      res.status(200).json(getallManager)
+      
+    } catch (error) {
+      response.status(401).json(error)
+    }
+    
+  }
   
+
+ 
+
   //get users
 
   exports.getEmployeesController = async (req, res) => {
