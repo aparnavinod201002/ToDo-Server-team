@@ -56,12 +56,11 @@ exports.loginUserController = async (req, res) => {
   
   //get users
 
-  exports.getManagersAndEmployeesController = async (req, res) => {
+  exports.getEmployeesController = async (req, res) => {
     console.log("Inside getManagersAndEmployeesController");
-
+  
     const { role } = req.payload; // 
-    console.log(role);
-    
+ 
     try {
       // Check if the logged-in user is an Admin
       if (role !== "Admin") {
@@ -69,12 +68,12 @@ exports.loginUserController = async (req, res) => {
       }
   
       // Fetch both Managers and Employees (excluding passwords)
-      const users = await User.find({ role: { $in: ["Manager", "Employee"] } }, "-password");
-  console.log(users);
+      const employees = await User.find({ role: "Employee" } );
+  console.log(employees);
   
-      res.status(200).json(users);
+      res.status(200).json(employees);
     } catch (error) {
-      console.error("Error fetching employees and managers:", error);
+      console.error("Error fetching employees:", error);
       res.status(500).json({ message: "Server error" });
     }
   };
