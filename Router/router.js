@@ -26,4 +26,7 @@ router.post('/AssignTask',jwtMiddleware,taskController.addAllUserstask)
 
 router.post('/getTask',jwtMiddleware,taskController.getAllUserTasks)
 
+// get manager
+router.get("/managers", userController.getManagers);
+
 module.exports = router;
