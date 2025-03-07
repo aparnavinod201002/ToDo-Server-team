@@ -106,3 +106,109 @@ exports.getAllUserTasks = async (req, res) => {
         res.status(500).json({ error: "Error fetching user tasks", details: err });
     }
 };
+
+//update tsak
+
+exports.updateUserTask = async (req, res) => {
+    console.log("Inside update task function");
+
+    const { taskId } = req.params;
+    const { title, description, priority, status, dueDate } = req.body;
+    const { role, userId } = req.payload; // Extracting role and userId from token payload
+
+    try {
+        // Find the task
+        const task = await Task.findById(taskId);
+        if (!task) {
+            return res.status(404).json({ message: "Task not found" });
+        }
+
+        // Find the assigned user
+        const assignedUser = await User.findById(task.assignedTo);
+        if (!assignedUser) {
+            return res.status(404).json({ message: "Assigned user not found" });
+        }
+
+        if (role === "Admin") {
+            // Admin can update only tasks assigned to Managers and Employees
+            if (assignedUser.role !== "Manager" && assignedUser.role !== "Employee") {
+                return res.status(403).json({ message: "Admin can only update tasks assigned to Managers and Employees" });
+            }
+        } else if (role === "Manager") {
+            // Manager can only update tasks assigned to Employees under them
+            const isEmployeeUnderManager = await User.findOne({ assignedEmployees: assignedUser._id, _id: userId });
+            if (!isEmployeeUnderManager) {
+                return res.status(403).json({ message: "Manager can only update tasks for Employees under them" });
+            }
+        } else if (role === "Employee") {
+            // Employees can only update the status of their assigned tasks
+            if (task.assignedTo.toString() !== userId) {
+                return res.status(403).json({ message: "You can only update your own tasks" });
+            }
+            await Task.findByIdAndUpdate(taskId, { status }, { new: true });
+            return res.status(200).json({ message: "Task status updated successfully" });
+        } else {
+            return res.status(403).json({ message: "Access denied" });
+        }
+
+        // Update task details for Admins and Managers
+        const updatedTask = await Task.findByIdAndUpdate(
+            taskId,
+            { title, description, priority, status, dueDate },
+            { new: true }
+        );
+
+        res.status(200).json(updatedTask);
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+
+//delete task
+
+exports.deleteUserTask = async (req, res) => {
+    console.log("Inside delete task function");
+
+    const { taskId } = req.params;
+    const { role, userId } = req.payload; // Extracting role and userId from token payload
+
+    try {
+        // Find the task
+        const task = await Task.findById(taskId);
+        if (!task) {
+            return res.status(404).json({ message: "Task not found" });
+        }
+
+        // Find the assigned user
+        const assignedUser = await User.findById(task.assignedTo);
+        if (!assignedUser) {
+            return res.status(404).json({ message: "Assigned user not found" });
+        }
+
+        if (role === "Admin") {
+            // Admin can delete tasks assigned to Managers and Employees
+            if (assignedUser.role !== "Manager" && assignedUser.role !== "Employee") {
+                return res.status(403).json({ message: "Admin can only delete tasks assigned to Managers and Employees" });
+            }
+        } else if (role === "Manager") {
+            // Manager can only delete tasks assigned to Employees under them
+            const isEmployeeUnderManager = await User.findOne({ assignedEmployees: assignedUser._id, _id: userId });
+            if (!isEmployeeUnderManager) {
+                return res.status(403).json({ message: "Manager can only delete tasks for Employees under them" });
+            }
+        } else {
+            // Employees cannot delete tasks
+            return res.status(403).json({ message: "Employees cannot delete tasks" });
+        }
+
+        // Delete the task
+        await Task.findByIdAndDelete(taskId);
+
+        res.status(200).json({ message: "Task deleted successfully" });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
