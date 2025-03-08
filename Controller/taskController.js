@@ -77,12 +77,17 @@ console.log(title, priority, assignedTo,dueDate,role, userId  );
 
 exports.getAllUserTasks = async (req, res) => {
     try {
+        console.log("get the details  to admin");
+        
         const { role, userId } = req.payload; // Extract role and userId from token payload
+       
+       console.log(role, userId);
+       
         let userTasks;
 
         if (role === "Admin") {
             // Admin can view tasks assigned by them to Managers and Employees
-            userTasks = await Task.find({ assignedBy: "Admin" });
+            userTasks = await Task.find({ assignedBy: userId });
 
             // Also, Admin can view tasks assigned by Managers to their Employees
             const managers = await User.find({ role: "Manager" }).select("_id");

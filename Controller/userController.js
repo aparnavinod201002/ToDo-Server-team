@@ -22,7 +22,7 @@ exports.registerUserController = async (req, res) => {
         // Save user to database
         await newUser.save();
         res.status(200).json(newUser)
-        console.log(newUser); 
+       
         }
 
     } catch (error) {
@@ -34,7 +34,7 @@ exports.registerUserController = async (req, res) => {
 // login user
 exports.loginUserController = async (req, res) => {
     const { email, password } = req.body;
-    console.log(email, password);
+    
   
     try {
       const existingUser = await User.findOne({email});
@@ -47,10 +47,10 @@ exports.loginUserController = async (req, res) => {
       }
       const token = jwt.sign({ userId: existingUser._id, role: existingUser.role }, process.env.JWT_SECRET || 'secretekey');
       res.status(200).json({ existingUser, token });
-      console.log(token);
+    
       
     } catch (error) {
-      console.error(error);
+     
       res.status(500).json('Server error');
     }
   };
@@ -59,7 +59,7 @@ exports.loginUserController = async (req, res) => {
   // to get manager so that they can be assigned to there employes
   exports.getManagers = async (req,res)=>{
     const searchKey = req.query.search
-    console.log(searchKey);
+  
     const query = {
       role:"Manager",
       name :{
@@ -82,14 +82,14 @@ exports.loginUserController = async (req, res) => {
   //get all users
 
   exports.getAllEmployeesAndManagerController = async (req, res) => {
-    console.log("Inside getEmployeesController");
+  
   
     try {
     
       const employees = await User.find({ 
         role: { $in: ["Employee", "Manager"] } // Fetch both roles
       });
-  console.log(employees);
+ 
   
       res.status(200).json(employees);
     } catch (error) {

@@ -28,7 +28,7 @@ router.post('/AssignTask',jwtMiddleware,taskController.addAllUserstask)
 
 //get task by admin to manager and emolyees , manager assigned task to employees , get the manager assigned task to employees under them and view the admin assigned task to them , employees get the task assigned by both
 
-router.post('/getTask',jwtMiddleware,taskController.getAllUserTasks)
+router.get('/getTasks',jwtMiddleware,taskController.getAllUserTasks)
 
 // get manager
 router.get("/managers",jwtMiddleware, userController.getManagers);
