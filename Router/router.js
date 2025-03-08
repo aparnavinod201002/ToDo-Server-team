@@ -20,7 +20,7 @@ router.post('/login',userController.loginUserController)
 
 //get all users
 
-router.get('/getEmployees',jwtMiddleware,userController.getEmployeesController)
+router.get('/getAllUsers',userController.getAllEmployeesAndManagerController)
 
 //add task by admin to manager and emolyees ,add task to manager to employees under them
 

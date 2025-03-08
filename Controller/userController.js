@@ -79,21 +79,16 @@ exports.loginUserController = async (req, res) => {
 
  
 
-  //get users
+  //get all users
 
-  exports.getEmployeesController = async (req, res) => {
-    console.log("Inside getManagersAndEmployeesController");
+  exports.getAllEmployeesAndManagerController = async (req, res) => {
+    console.log("Inside getEmployeesController");
   
-    const { role } = req.payload; // 
- 
     try {
-      // Check if the logged-in user is an Admin
-      if (role !== "Admin") {
-        return res.status(403).json({ message: "Access denied. Admins only." });
-      }
-  
-      // Fetch both Managers and Employees (excluding passwords)
-      const employees = await User.find({ role: "Employee" } );
+    
+      const employees = await User.find({ 
+        role: { $in: ["Employee", "Manager"] } // Fetch both roles
+      });
   console.log(employees);
   
       res.status(200).json(employees);
@@ -103,27 +98,6 @@ exports.loginUserController = async (req, res) => {
     }
   };
   
-  
-//employee
 
 
   
-// exports.getEmployeesController = async (req, res) => {
-//   try {
-//     // Check if the logged-in user is an Admin
-//     if (req.user.role !== "Admin") {
-//       return res.status(403).json({ message: "Access denied. Admins only." });
-//     }
-
-//     // Fetch only employees (excluding passwords)
-//     const employees = await User.find({ role: "Employee" }, "-password");
-//     res.status(200).json(employees);
-//   } catch (error) {
-//     console.error("Error fetching employees:", error);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
-
-
-
