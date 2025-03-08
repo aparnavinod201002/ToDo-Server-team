@@ -5,7 +5,7 @@ const { response } = require('express');
 
 // Register controller
 exports.registerUserController = async (req, res) => {
-    const { name, email, password, role, createdBy, assignedEmployees } = req.body;
+    const { name, email, password, role, assignedEmployees } = req.body;
 
     try {
         // Check if user already exists
@@ -18,7 +18,7 @@ exports.registerUserController = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create new user
-        const newUser = new User({ name,email,password: hashedPassword, role,createdBy,assignedEmployees  });
+        const newUser = new User({ name,email,password: hashedPassword, role,assignedEmployees  });
         // Save user to database
         await newUser.save();
         res.status(200).json(newUser)
