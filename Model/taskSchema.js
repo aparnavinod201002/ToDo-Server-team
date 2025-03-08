@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 const TaskSchema = new mongoose.Schema({
   title: String,
-  description: String,
+ 
   assignedTo: { type: mongoose.Schema.Types.ObjectId, required: true },
   assignedBy: { type: mongoose.Schema.Types.ObjectId, required: true },
   priority: { type: String, default: "Low" },

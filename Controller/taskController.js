@@ -6,60 +6,67 @@ const User = require('../Model/userSchema')
 //Assign task by admin to managers and managers to employees
 
 
-exports.addAllUserstask = async (req, res) => {
-    console.log("inside add task added function");
 
-    const { title, description, priority, status, dueDate, assignedTo } = req.body;
-    const { role, userId } = req.payload; // Assuming role and userId are extracted from token payload
+exports.addAllUserstask = async (req, res) => {
+    console.log("Inside add task function");
+
+    const { title, priority, assignedTo,dueDate } = req.body;
+    const { role, userId } = req.payload; // Extracting role and userId from token payload
+console.log(title, priority, assignedTo,dueDate,role, userId  );
 
     try {
+        // Check if assignedTo user exists
+        const assignedUser = await User.findById(assignedTo);
+        if (!assignedUser) {
+            return res.status(404).json({ message: "Assigned user not found" });
+        }
+
         // Role-based validation
         if (role === "Admin") {
-            // Admin can assign tasks to Managers and Employees
-            const assignedUser = await User.findById(assignedTo);
-            if (!assignedUser || (assignedUser.role !== "Manager" && assignedUser.role !== "Employee")) {
-                return res.status(403).json({ message: "Admin can only assign tasks to Managers and Employees" });
+            // Admin can assign tasks only to Managers and Employees
+            if (assignedUser.role !== "Manager" && assignedUser.role !== "Employee") {
+                return res.status(403).json({ message: "Admins can only assign tasks to Managers and Employees" });
             }
         } else if (role === "Manager") {
             // Manager can only assign tasks to Employees under them
-            const assignedUser = await User.findOne({ assignedEmployees: assignedTo, _id: userId });
-            if (!assignedUser || assignedUser.role !== "Employee") {
-                return res.status(403).json({ message: "Manager can only assign tasks to Employees under them" });
+            const manager = await User.findById(userId);
+            if (!manager || !manager.assignedEmployees.includes(assignedTo)) {
+                return res.status(403).json({ message: "Managers can only assign tasks to Employees under them" });
+            }
+            if (assignedUser.role !== "Employee") {
+                return res.status(403).json({ message: "Managers can only assign tasks to Employees" });
             }
         } else if (role === "Employee") {
-            // Employees are not allowed to add tasks
-            return res.status(403).json({ message: "Employees cannot add tasks" });
+            // Employees are not allowed to assign tasks
+            return res.status(403).json({ message: "Employees are not allowed to assign tasks" });
         } else {
-            // Other roles or unauthorized users cannot access
             return res.status(403).json({ message: "Access denied" });
         }
 
         // Check if the task with the same title is already assigned to the same person
         const existingTask = await Task.findOne({ title, assignedTo });
         if (existingTask) {
-            return res.status(406).json({ message: "Task already assigned" });
+            return res.status(409).json({ message: "Task with this title is already assigned to the user" });
         }
 
-        // Create new task
+        // Create a new task
         const newTask = new Task({
             title,
-            description,
             assignedTo,
-            assignedBy: role, // Assigning role for tracking
+            assignedBy: userId, // Track who assigned the task
             priority,
-            status,
-            dueDate
+            status: "Low",
+            dueDate,
         });
 
         await newTask.save();
-        res.status(200).json(newTask);
+        res.status(201).json({ message: "Task successfully created", task: newTask });
 
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error("Error adding task:", err);
+        res.status(500).json({ error: "Internal Server Error" });
     }
 };
-
-
 
 
 //get all task details
