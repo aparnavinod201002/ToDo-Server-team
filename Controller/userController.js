@@ -98,6 +98,21 @@ exports.loginUserController = async (req, res) => {
     }
   };
   
+  //
+  
+
+  
+exports.deleteUser = async(req,res)=>{
+  console.log("inside delete")
+  const {id} = req.params
+
+  try{
+      const deleteData = await User.findByIdAndDelete({_id:id})
+      result.status(200).json(deleteData)
+  }catch(err){
+      res.status(401).json(err)
+  }
+}
 
 
   

@@ -32,5 +32,8 @@ router.get('/getTasks',jwtMiddleware,taskController.getAllUserTasks)
 
 // get manager
 router.get("/managers",jwtMiddleware, userController.getManagers);
+//
+router.delete('/managerAndemployee/remove/:id',userController.deleteUser)
+
 
 module.exports = router;
