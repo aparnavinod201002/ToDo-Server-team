@@ -60,7 +60,7 @@ console.log(title, priority, assignedTo,dueDate,role, userId  );
         });
 
         await newTask.save();
-        res.status(201).json({ message: "Task successfully created", task: newTask });
+        res.status(200).json({ message: "Task successfully created", task: newTask });
 
     } catch (err) {
         console.error("Error adding task:", err);

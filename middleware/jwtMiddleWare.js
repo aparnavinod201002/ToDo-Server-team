@@ -9,7 +9,7 @@ const jwtMiddleware = (req,res,next)=>{
     try {
         const jwtResponse = jwt.verify(token,"secretekey")
         console.log(jwtResponse);
-        req.payload = jwtResponse.userId
+        req.payload = jwtResponse
         next() 
 
     } catch (error) {
