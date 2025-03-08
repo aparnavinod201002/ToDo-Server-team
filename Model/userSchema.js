@@ -19,10 +19,6 @@ const userSchema = new mongoose.Schema({
     enum: ['Admin', 'Manager', 'Employee'],
     required: true
   },
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', 
-  },
   assignedEmployees: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User' 
