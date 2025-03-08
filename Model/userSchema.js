@@ -19,10 +19,10 @@ const userSchema = new mongoose.Schema({
     enum: ['Admin', 'Manager', 'Employee'],
     required: true
   },
-  assignedEmployees: {
+  assignedEmployees:[ {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User' 
-  }
+  }]
 });
 
 const User = mongoose.model("User",userSchema)

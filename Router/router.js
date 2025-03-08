@@ -35,5 +35,7 @@ router.get("/managers",jwtMiddleware, userController.getManagers);
 //
 router.delete('/managerAndemployee/remove/:id',userController.deleteUser)
 
+//employees
+router.get('/getEmployees',jwtMiddleware,userController.getManagersEmployees)
 
 module.exports = router;
