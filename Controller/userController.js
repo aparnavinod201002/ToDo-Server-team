@@ -115,34 +115,20 @@ exports.deleteUser = async(req,res)=>{
   }
 }
 
-//get manager assigned employees
 
 exports.getManagersEmployees = async (req, res) => {
-  console.log("Fetching assigned employees...");
-
-  const userId = req.payload; // Get manager's ID from request payload
-
+  
+  
   try {
-    // Find the manager and get assignedEmployees array
-    const manager = await User.findById(userId).select("assignedEmployees");
+  
+    const employees = await User.find({ 
+      role:  "Employee" // Fetch both roles
+    });
 
-    if (!manager) {
-      return res.status(404).json({ message: "Manager not found" });
-    }
 
-    const { assignedEmployees } = manager;
-
-    if (!assignedEmployees || assignedEmployees.length === 0) {
-      return res.status(200).json({ message: "No assigned employees found", employees: [] });
-    }
-
-    // Retrieve employees based on assignedEmployees array
-    const employees = await User.find({ _id: { $in: assignedEmployees } })
-      .select("name email role");
-
-    res.status(200).json({ employees });
+    res.status(200).json(employees);
   } catch (error) {
-    console.error("Error fetching assigned employees:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("Error fetching employees:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
