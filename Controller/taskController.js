@@ -127,6 +127,7 @@ exports.updateUserTask = async (req, res) => {
     const { taskId } = req.params;
     const { title, description, priority, status, dueDate } = req.body;
     const { role, userId } = req.payload; // Extracting role and userId from token payload
+console.log(taskId,role, userId,status );
 
     try {
         // Find the task

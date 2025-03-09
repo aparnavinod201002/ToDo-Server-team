@@ -38,4 +38,8 @@ router.delete('/managerAndemployee/remove/:id',userController.deleteUser)
 //employees
 router.get('/getEmployees',userController.getManagersEmployees)
 
+
+
+router.put('/status/edit/:taskId',jwtMiddleware,taskController.updateUserTask)
+
 module.exports = router;
