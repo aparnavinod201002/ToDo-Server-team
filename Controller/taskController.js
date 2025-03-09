@@ -3,7 +3,7 @@ const User = require('../Model/userSchema')
 
 
 
-//Assign task by admin to managers and managers to employees
+//Assign task by admin to managers and managers to employees 
 
 
 
@@ -55,7 +55,7 @@ console.log(title, priority, assignedTo,dueDate,role, userId  );
             assignedTo,
             assignedBy: userId, // Track who assigned the task
             priority,
-            status: "Low",
+            status: "Pending",
             dueDate,
         });
 
